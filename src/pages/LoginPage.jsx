@@ -12,10 +12,12 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore.js';
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -46,14 +48,14 @@ const LoginPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Неверное имя пользователя или пароль');
+        throw new Error(t('auth.invalidCredentials'));
       }
 
       const { token: nextToken, username } = await response.json();
       setAuth(nextToken, username);
       navigate('/', { replace: true });
     } catch (submitError) {
-      setError(submitError.message || 'Не удалось войти');
+      setError(submitError.message || t('auth.invalidCredentials'));
     } finally {
       setLoading(false);
     }
@@ -62,23 +64,23 @@ const LoginPage = () => {
   return (
     <Center mih="100vh">
       <Paper withBorder shadow="md" p="xl" radius="md" w={360}>
-        <Title order={1} ta="center" mb="lg">Войти</Title>
+        <Title order={1} ta="center" mb="lg">{t('auth.login')}</Title>
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack>
             {error && <Alert color="red">{error}</Alert>}
             <TextInput
-              label="Имя пользователя"
+              label={t('auth.username')}
               autoComplete="username"
               {...form.getInputProps('username')}
             />
             <PasswordInput
-              label="Пароль"
+              label={t('auth.password')}
               autoComplete="current-password"
               {...form.getInputProps('password')}
             />
-            <Button type="submit" loading={loading}>Войти</Button>
+            <Button type="submit" loading={loading}>{t('auth.login')}</Button>
             <Text ta="center" size="sm">
-              Нет аккаунта? <Anchor component={Link} to="/signup">Зарегистрироваться</Anchor>
+              {t('auth.noAccount')} <Anchor component={Link} to="/signup">{t('auth.register')}</Anchor>
             </Text>
           </Stack>
         </form>

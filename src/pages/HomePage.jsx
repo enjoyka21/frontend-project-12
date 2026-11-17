@@ -21,6 +21,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   createChannel,
   createMessage,
@@ -33,6 +34,7 @@ import useAuthStore from '../store/authStore.js';
 import useChatStore from '../store/chatStore.js';
 
 const HomePage = ({ socket }) => {
+  const { t } = useTranslation();
   const token = useAuthStore((state) => state.token);
   const username = useAuthStore((state) => state.username);
   const logout = useAuthStore((state) => state.logout);
@@ -45,10 +47,10 @@ const HomePage = ({ socket }) => {
     validate: {
       name: (value) => {
         const name = value.trim();
-        if (name.length < 3 || name.length > 20) return 'От 3 до 20 символов';
+        if (name.length < 3 || name.length > 20) return t('chat.channelLength');
         if (channelsQuery.data?.some(({ id, name: channelName }) => (
           channelName === name && id !== channelModal?.channel?.id
-        ))) return 'Канал уже существует';
+        ))) return t('chat.channelExists');
         return null;
       },
     },
@@ -161,16 +163,16 @@ const HomePage = ({ socket }) => {
   });
 
   if (channelsQuery.isLoading || messagesQuery.isLoading) {
-    return <Center mih="100vh"><Loader /></Center>;
+    return <Center mih="100vh"><Loader aria-label={t('chat.loading')} /></Center>;
   }
 
   if (channelsQuery.isError || messagesQuery.isError) {
     return (
       <Center mih="100vh">
         <Stack align="center">
-          <Text c="red">Не удалось загрузить данные чата</Text>
+          <Text c="red">{t('chat.loadingError')}</Text>
           <Button onClick={() => { channelsQuery.refetch(); messagesQuery.refetch(); }}>
-            Повторить
+            {t('common.retry')}
           </Button>
         </Stack>
       </Center>
@@ -181,12 +183,12 @@ const HomePage = ({ socket }) => {
     <Flex mih="100vh" bg="gray.0">
       <Paper w={280} p="md" radius={0} withBorder>
         <Group justify="space-between" mb="md">
-          <Title order={2}>Каналы</Title>
+          <Title order={2}>{t('chat.channels')}</Title>
           <Group gap="xs">
             <Button
               variant="light"
               size="xs"
-              aria-label="Добавить канал"
+              aria-label={t('chat.addChannel')}
               onClick={() => {
               channelForm.reset();
               setChannelModal({ mode: 'create' });
@@ -194,7 +196,7 @@ const HomePage = ({ socket }) => {
             >
               +
             </Button>
-            <Button variant="subtle" size="xs" onClick={logout}>Выйти</Button>
+            <Button variant="subtle" size="xs" onClick={logout}>{t('common.logout')}</Button>
           </Group>
         </Group>
         <Stack gap="xs">
@@ -208,22 +210,22 @@ const HomePage = ({ socket }) => {
                 styles={{ label: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
               >
                 <span># {channel.name}</span>
-                {channel.removable && <Badge size="xs">канал</Badge>}
+                {channel.removable && <Badge size="xs">{t('chat.channelBadge')}</Badge>}
               </Button>
               {channel.removable && (
                 <Menu withinPortal>
                   <Menu.Target>
-                    <ActionIcon variant="subtle" aria-label={`Управление каналом ${channel.name}`}>⋮</ActionIcon>
+                    <ActionIcon variant="subtle" aria-label={t('chat.manageChannel', { name: channel.name })}>⋮</ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>
                     <Menu.Item onClick={() => {
                       channelForm.setValues({ name: channel.name });
                       setChannelModal({ mode: 'rename', channel });
                     }}>
-                      Переименовать
+                      {t('chat.rename')}
                     </Menu.Item>
                     <Menu.Item color="red" onClick={() => setChannelToDelete(channel)}>
-                      Удалить
+                      {t('chat.remove')}
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
@@ -236,9 +238,9 @@ const HomePage = ({ socket }) => {
       <Box flex={1} p="xl">
         <Group justify="space-between" mb="md">
           <div>
-            <Title order={2}>{currentChannel ? `# ${currentChannel.name}` : 'Чат'}</Title>
+            <Title order={2}>{currentChannel ? `# ${currentChannel.name}` : t('chat.channelTitle')}</Title>
             <Text c="dimmed" size="sm">
-              {socket.connected ? 'Подключено к серверу' : 'Подключение к серверу…'}
+              {socket.connected ? t('chat.connected') : t('chat.connecting')}
             </Text>
           </div>
         </Group>
@@ -261,21 +263,21 @@ const HomePage = ({ socket }) => {
           <Group align="end">
             <TextInput
               flex={1}
-              placeholder="Введите сообщение"
-              aria-label="Новое сообщение"
+              placeholder={t('chat.messagePlaceholder')}
+              aria-label={t('chat.newMessage')}
               disabled={messageMutation.isPending}
               {...form.getInputProps('message')}
             />
-            <Button type="submit" loading={messageMutation.isPending}>Отправить</Button>
+            <Button type="submit" loading={messageMutation.isPending}>{t('chat.send')}</Button>
           </Group>
-          {messageMutation.isError && <Text c="red" size="sm" mt="xs">Не удалось отправить сообщение</Text>}
+          {messageMutation.isError && <Text c="red" size="sm" mt="xs">{t('chat.sendError')}</Text>}
         </form>
       </Box>
 
       <Modal
         opened={Boolean(channelModal)}
         onClose={() => setChannelModal(null)}
-        title={channelModal?.mode === 'rename' ? 'Переименовать канал' : 'Добавить канал'}
+        title={channelModal?.mode === 'rename' ? t('chat.renameChannelTitle') : t('chat.addChannelTitle')}
       >
         <form onSubmit={channelForm.onSubmit(({ name }) => channelMutation.mutate({
           mode: channelModal.mode,
@@ -284,14 +286,14 @@ const HomePage = ({ socket }) => {
         }))}>
           <Stack>
             <TextInput
-              label="Название канала"
-              placeholder="Например, frontend"
+              label={t('chat.channelName')}
+              placeholder={t('chat.channelPlaceholder')}
               autoFocus
               disabled={channelMutation.isPending}
               {...channelForm.getInputProps('name')}
             />
-            {channelMutation.isError && <Text c="red" size="sm">Не удалось сохранить канал</Text>}
-            <Button type="submit" loading={channelMutation.isPending}>Сохранить</Button>
+            {channelMutation.isError && <Text c="red" size="sm">{t('chat.channelSaveError')}</Text>}
+            <Button type="submit" loading={channelMutation.isPending}>{t('common.save')}</Button>
           </Stack>
         </form>
       </Modal>
@@ -299,15 +301,15 @@ const HomePage = ({ socket }) => {
       <Modal
         opened={Boolean(channelToDelete)}
         onClose={() => setChannelToDelete(null)}
-        title="Удалить канал?"
+        title={t('chat.deleteTitle')}
       >
         <Stack>
-          <Text>Канал «{channelToDelete?.name}» и все его сообщения будут удалены.</Text>
-          {deleteMutation.isError && <Text c="red" size="sm">Не удалось удалить канал</Text>}
+          <Text>{t('chat.deleteDescription', { name: channelToDelete?.name })}</Text>
+          {deleteMutation.isError && <Text c="red" size="sm">{t('chat.channelRemoveError')}</Text>}
           <Group justify="flex-end">
-            <Button variant="default" onClick={() => setChannelToDelete(null)}>Отмена</Button>
+            <Button variant="default" onClick={() => setChannelToDelete(null)}>{t('common.cancel')}</Button>
             <Button color="red" loading={deleteMutation.isPending} onClick={() => deleteMutation.mutate(channelToDelete.id)}>
-              Удалить
+              {t('chat.remove')}
             </Button>
           </Group>
         </Stack>

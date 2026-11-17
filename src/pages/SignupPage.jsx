@@ -11,11 +11,13 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { signup } from '../api/chatApi.js';
 import useAuthStore from '../store/authStore.js';
 
 const SignupPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -30,17 +32,17 @@ const SignupPage = () => {
     validate: {
       username: (value) => {
         const length = value.trim().length;
-        if (length === 0) return 'Введите имя пользователя';
-        if (length < 3 || length > 20) return 'От 3 до 20 символов';
+        if (length === 0) return t('auth.usernameRequired');
+        if (length < 3 || length > 20) return t('auth.usernameLength');
         return null;
       },
       password: (value) => {
-        if (value.length === 0) return 'Введите пароль';
-        return value.length < 6 ? 'Не менее 6 символов' : null;
+        if (value.length === 0) return t('auth.passwordRequired');
+        return value.length < 6 ? t('auth.passwordLength') : null;
       },
       passwordConfirmation: (value, values) => {
-        if (value.length === 0) return 'Подтвердите пароль';
-        return value !== values.password ? 'Пароли не совпадают' : null;
+        if (value.length === 0) return t('auth.confirmationRequired');
+        return value !== values.password ? t('auth.passwordsMismatch') : null;
       },
     },
   });
@@ -55,9 +57,7 @@ const SignupPage = () => {
       setAuth(result.token, result.username);
       navigate('/', { replace: true });
     } catch (error) {
-      setServerError(error.status === 409
-        ? 'Пользователь с таким именем уже существует'
-        : 'Не удалось зарегистрироваться');
+      setServerError(error.status === 409 ? t('auth.userExists') : t('auth.signupFailed'));
     } finally {
       setLoading(false);
     }
@@ -66,16 +66,16 @@ const SignupPage = () => {
   return (
     <Center mih="calc(100vh - 65px)">
       <Paper withBorder shadow="md" p="xl" radius="md" w={380}>
-        <Title order={1} ta="center" mb="lg">Регистрация</Title>
+        <Title order={1} ta="center" mb="lg">{t('auth.signup')}</Title>
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack>
             {serverError && <Alert color="red">{serverError}</Alert>}
-            <TextInput label="Имя пользователя" autoComplete="username" {...form.getInputProps('username')} />
-            <PasswordInput label="Пароль" autoComplete="new-password" {...form.getInputProps('password')} />
-            <PasswordInput label="Подтверждение пароля" autoComplete="new-password" {...form.getInputProps('passwordConfirmation')} />
-            <Button type="submit" loading={loading}>Зарегистрироваться</Button>
+            <TextInput label={t('auth.username')} autoComplete="username" {...form.getInputProps('username')} />
+            <PasswordInput label={t('auth.password')} autoComplete="new-password" {...form.getInputProps('password')} />
+            <PasswordInput label={t('auth.passwordConfirmation')} autoComplete="new-password" {...form.getInputProps('passwordConfirmation')} />
+            <Button type="submit" loading={loading}>{t('auth.register')}</Button>
             <Text ta="center" size="sm">
-              Уже есть аккаунт? <Link to="/login">Войти</Link>
+              {t('auth.haveAccount')} <Link to="/login">{t('auth.loginLink')}</Link>
             </Text>
           </Stack>
         </form>

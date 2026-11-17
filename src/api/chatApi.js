@@ -17,6 +17,22 @@ const request = async (path, token, options = {}) => {
 
 export const fetchChannels = (token) => request('/channels', token);
 export const fetchMessages = (token) => request('/messages', token);
+
+export const signup = async (credentials) => {
+  const response = await fetch('/api/v1/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const error = new Error('Не удалось зарегистрироваться');
+    error.status = response.status;
+    throw error;
+  }
+
+  return response.json();
+};
 export const createMessage = (token, message) => request('/messages', token, {
   method: 'POST',
   body: message,

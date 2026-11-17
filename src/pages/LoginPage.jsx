@@ -1,16 +1,18 @@
 import {
   Alert,
+  Anchor,
   Button,
   Center,
   Paper,
   PasswordInput,
   Stack,
+  Text,
   TextInput,
   Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore.js';
 
 const LoginPage = () => {
@@ -75,6 +77,9 @@ const LoginPage = () => {
               {...form.getInputProps('password')}
             />
             <Button type="submit" loading={loading}>Войти</Button>
+            <Text ta="center" size="sm">
+              Нет аккаунта? <Anchor component={Link} to="/signup">Зарегистрироваться</Anchor>
+            </Text>
           </Stack>
         </form>
       </Paper>

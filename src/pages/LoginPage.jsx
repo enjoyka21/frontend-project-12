@@ -80,7 +80,7 @@ const LoginPage = () => {
             />
             <Button type="submit" loading={loading}>{t('auth.login')}</Button>
             <Text ta="center" size="sm">
-              {t('auth.noAccount')} <Anchor component={Link} to="/signup">{t('auth.register')}</Anchor>
+              {t('auth.noAccount')} <Anchor component={Link} to="/signup">{t('auth.signup')}</Anchor>
             </Text>
           </Stack>
         </form>

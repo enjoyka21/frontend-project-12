@@ -1,6 +1,7 @@
 import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
+import { Notifications } from '@mantine/notifications';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Header from './components/Header.jsx';
@@ -18,6 +19,7 @@ const init = async (socket) => {
   return (
     <I18nextProvider i18n={i18n}>
       <MantineProvider>
+        <Notifications position="top-right" />
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Header />

@@ -18,6 +18,7 @@ import {
   Title,
 } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { notifications } from '@mantine/notifications';
 import { useEffect } from 'react';
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
@@ -126,6 +127,17 @@ const HomePage = ({ socket }) => {
     };
   }, [currentChannelId, queryClient, setCurrentChannelId, socket, token]);
 
+  useEffect(() => {
+    if (channelsQuery.isError || messagesQuery.isError) {
+      notifications.show({
+        id: 'chat-loading-error',
+        color: 'red',
+        title: t('notifications.errorTitle'),
+        message: t('notifications.loadingError'),
+      });
+    }
+  }, [channelsQuery.isError, messagesQuery.isError, t]);
+
   const messageMutation = useMutation({
     mutationFn: ({ body, channelId }) => createMessage(token, {
       body,
@@ -136,17 +148,37 @@ const HomePage = ({ socket }) => {
       form.reset();
       queryClient.invalidateQueries({ queryKey: ['messages', token] });
     },
+    onError: () => {
+      notifications.show({
+        color: 'red',
+        title: t('notifications.errorTitle'),
+        message: t('notifications.sendError'),
+      });
+    },
   });
 
   const channelMutation = useMutation({
     mutationFn: ({ mode, channelId, name }) => (mode === 'create'
       ? createChannel(token, name)
       : renameChannel(token, channelId, name)),
-    onSuccess: (channel) => {
+    onSuccess: (channel, variables) => {
       queryClient.invalidateQueries({ queryKey: ['channels', token] });
       setCurrentChannelId(channel.id);
       channelForm.reset();
       setChannelModal(null);
+      notifications.show({
+        color: 'green',
+        message: variables.mode === 'rename'
+          ? t('notifications.channelRenamed')
+          : t('notifications.channelCreated'),
+      });
+    },
+    onError: () => {
+      notifications.show({
+        color: 'red',
+        title: t('notifications.errorTitle'),
+        message: t('chat.channelSaveError'),
+      });
     },
   });
 
@@ -159,6 +191,14 @@ const HomePage = ({ socket }) => {
       queryClient.invalidateQueries({ queryKey: ['messages', token] });
       if (currentChannelId === id) setCurrentChannelId(null);
       setChannelToDelete(null);
+      notifications.show({ color: 'green', message: t('notifications.channelRemoved') });
+    },
+    onError: () => {
+      notifications.show({
+        color: 'red',
+        title: t('notifications.errorTitle'),
+        message: t('chat.channelRemoveError'),
+      });
     },
   });
 

@@ -14,16 +14,22 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
+import { useForm } from '@mantine/form';
 import { fetchChannels, fetchMessages } from '../api/chatApi.js';
+import { createMessage } from '../api/chatApi.js';
 import useAuthStore from '../store/authStore.js';
 import useChatStore from '../store/chatStore.js';
 
 const HomePage = ({ socket }) => {
   const token = useAuthStore((state) => state.token);
+  const username = useAuthStore((state) => state.username);
   const logout = useAuthStore((state) => state.logout);
   const currentChannelId = useChatStore((state) => state.currentChannelId);
   const setCurrentChannelId = useChatStore((state) => state.setCurrentChannelId);
+  const queryClient = useQueryClient();
+  const form = useForm({ initialValues: { message: '' } });
   const channelsQuery = useQuery({
     queryKey: ['channels', token],
     queryFn: () => fetchChannels(token),
@@ -35,10 +41,45 @@ const HomePage = ({ socket }) => {
     enabled: Boolean(token),
   });
 
-  const channels = channelsQuery.data ?? [];
-  const messages = messagesQuery.data ?? [];
-  const currentChannel = channels.find(({ id }) => id === currentChannelId) ?? channels[0];
+  const channels = useMemo(() => channelsQuery.data ?? [], [channelsQuery.data]);
+  const messages = useMemo(() => messagesQuery.data ?? [], [messagesQuery.data]);
+  const defaultChannel = useMemo(
+    () => channels.find(({ name }) => name === 'general') ?? channels[0],
+    [channels],
+  );
+  const currentChannel = channels.find(({ id }) => id === currentChannelId) ?? defaultChannel;
   const channelMessages = messages.filter(({ channelId }) => channelId === currentChannel?.id);
+
+  useEffect(() => {
+    if (defaultChannel && currentChannelId !== defaultChannel.id && !channels.some(({ id }) => id === currentChannelId)) {
+      setCurrentChannelId(defaultChannel.id);
+    }
+  }, [channels, currentChannelId, defaultChannel, setCurrentChannelId]);
+
+  useEffect(() => {
+    const handleNewMessage = (message) => {
+      queryClient.setQueryData(['messages', token], (currentMessages = []) => (
+        currentMessages.some(({ id }) => id === message.id)
+          ? currentMessages
+          : [...currentMessages, message]
+      ));
+    };
+
+    socket.on('newMessage', handleNewMessage);
+    return () => socket.off('newMessage', handleNewMessage);
+  }, [queryClient, socket, token]);
+
+  const messageMutation = useMutation({
+    mutationFn: ({ body, channelId }) => createMessage(token, {
+      body,
+      channelId,
+      username,
+    }),
+    onSuccess: () => {
+      form.reset();
+      queryClient.invalidateQueries({ queryKey: ['messages', token] });
+    },
+  });
 
   if (channelsQuery.isLoading || messagesQuery.isLoading) {
     return <Center mih="100vh"><Loader /></Center>;
@@ -99,11 +140,22 @@ const HomePage = ({ socket }) => {
             ))}
           </Stack>
         </ScrollArea>
-        <form onSubmit={(event) => event.preventDefault()}>
+        <form onSubmit={form.onSubmit(({ message }) => {
+          if (message.trim() && currentChannel) {
+            messageMutation.mutate({ body: message.trim(), channelId: currentChannel.id });
+          }
+        })}>
           <Group align="end">
-            <TextInput flex={1} placeholder="Введите сообщение" aria-label="Новое сообщение" />
-            <Button type="submit">Отправить</Button>
+            <TextInput
+              flex={1}
+              placeholder="Введите сообщение"
+              aria-label="Новое сообщение"
+              disabled={messageMutation.isPending}
+              {...form.getInputProps('message')}
+            />
+            <Button type="submit" loading={messageMutation.isPending}>Отправить</Button>
           </Group>
+          {messageMutation.isError && <Text c="red" size="sm" mt="xs">Не удалось отправить сообщение</Text>}
         </form>
       </Box>
     </Flex>

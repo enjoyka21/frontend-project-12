@@ -33,6 +33,7 @@ import {
 } from '../api/chatApi.js';
 import useAuthStore from '../store/authStore.js';
 import useChatStore from '../store/chatStore.js';
+import cleanText from '../utils/profanity.js';
 
 const HomePage = ({ socket }) => {
   const { t } = useTranslation();
@@ -140,7 +141,7 @@ const HomePage = ({ socket }) => {
 
   const messageMutation = useMutation({
     mutationFn: ({ body, channelId }) => createMessage(token, {
-      body,
+      body: cleanText(body),
       channelId,
       username,
     }),
@@ -159,8 +160,8 @@ const HomePage = ({ socket }) => {
 
   const channelMutation = useMutation({
     mutationFn: ({ mode, channelId, name }) => (mode === 'create'
-      ? createChannel(token, name)
-      : renameChannel(token, channelId, name)),
+      ? createChannel(token, cleanText(name))
+      : renameChannel(token, channelId, cleanText(name))),
     onSuccess: (channel, variables) => {
       queryClient.invalidateQueries({ queryKey: ['channels', token] });
       setCurrentChannelId(channel.id);
@@ -249,13 +250,13 @@ const HomePage = ({ socket }) => {
                 onClick={() => setCurrentChannelId(channel.id)}
                 styles={{ label: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
               >
-                <span># {channel.name}</span>
+                <span># {cleanText(channel.name)}</span>
                 {channel.removable && <Badge size="xs">{t('chat.channelBadge')}</Badge>}
               </Button>
               {channel.removable && (
                 <Menu withinPortal>
                   <Menu.Target>
-                    <ActionIcon variant="subtle" aria-label={t('chat.manageChannel', { name: channel.name })}>⋮</ActionIcon>
+                    <ActionIcon variant="subtle" aria-label={t('chat.manageChannel', { name: cleanText(channel.name) })}>⋮</ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>
                     <Menu.Item onClick={() => {
@@ -278,7 +279,7 @@ const HomePage = ({ socket }) => {
       <Box flex={1} p="xl">
         <Group justify="space-between" mb="md">
           <div>
-            <Title order={2}>{currentChannel ? `# ${currentChannel.name}` : t('chat.channelTitle')}</Title>
+            <Title order={2}>{currentChannel ? `# ${cleanText(currentChannel.name)}` : t('chat.channelTitle')}</Title>
             <Text c="dimmed" size="sm">
               {socket.connected ? t('chat.connected') : t('chat.connecting')}
             </Text>
@@ -290,7 +291,7 @@ const HomePage = ({ socket }) => {
             {channelMessages.map((message) => (
               <Paper key={message.id} p="sm" withBorder>
                 <Text fw={700} size="sm">{message.username}</Text>
-                <Text>{message.body}</Text>
+                <Text>{cleanText(message.body)}</Text>
               </Paper>
             ))}
           </Stack>
@@ -344,7 +345,7 @@ const HomePage = ({ socket }) => {
         title={t('chat.deleteTitle')}
       >
         <Stack>
-          <Text>{t('chat.deleteDescription', { name: channelToDelete?.name })}</Text>
+          <Text>{t('chat.deleteDescription', { name: cleanText(channelToDelete?.name ?? '') })}</Text>
           {deleteMutation.isError && <Text c="red" size="sm">{t('chat.channelRemoveError')}</Text>}
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setChannelToDelete(null)}>{t('common.cancel')}</Button>

@@ -2,8 +2,10 @@ import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
 import { Notifications } from '@mantine/notifications';
+import * as Sentry from '@sentry/react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import ErrorFallback from './components/ErrorFallback.jsx';
 import Header from './components/Header.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
@@ -13,12 +15,22 @@ import i18n, { initI18n } from './i18n.js';
 
 const queryClient = new QueryClient();
 
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+if (sentryDsn) {
+  Sentry.init({
+    dsn: sentryDsn,
+    environment: import.meta.env.MODE,
+    sendDefaultPii: false,
+  });
+}
+
 const init = async (socket) => {
   await initI18n();
 
   return (
     <I18nextProvider i18n={i18n}>
-      <MantineProvider>
+      <Sentry.ErrorBoundary fallback={ErrorFallback}>
+        <MantineProvider>
         <Notifications position="top-right" />
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
@@ -39,7 +51,8 @@ const init = async (socket) => {
             </Routes>
           </BrowserRouter>
         </QueryClientProvider>
-      </MantineProvider>
+        </MantineProvider>
+      </Sentry.ErrorBoundary>
     </I18nextProvider>
   );
 };

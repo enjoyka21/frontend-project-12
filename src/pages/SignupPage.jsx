@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { signup } from '../api/chatApi.js';
-import useAuthStore from '../store/authStore.js';
+import { useAuthStore } from '../store/useStores.js';
 
 const SignupPage = () => {
   const { t } = useTranslation();

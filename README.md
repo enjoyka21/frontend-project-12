@@ -17,7 +17,7 @@
 ```bash
 git clone https://github.com/enjoyka21/frontend-project-12.git
 cd frontend-project-12
-npm install
+make install
 ```
 
 ## Использование

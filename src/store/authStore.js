@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-const useAuthStore = create(
+export const createAuthStore = () => create(
   persist(
     (set) => ({
       token: window.localStorage.getItem('token'),
@@ -21,5 +21,3 @@ const useAuthStore = create(
     },
   ),
 );
-
-export default useAuthStore;

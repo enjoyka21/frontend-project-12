@@ -11,9 +11,10 @@ import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
-import i18n, { initI18n } from './i18n.js';
-
-const queryClient = new QueryClient();
+import { createI18n, initI18n } from './i18n.js';
+import { createAuthStore } from './store/authStore.js';
+import { createChatStore } from './store/chatStore.js';
+import { StoreProvider } from './store/StoreProvider.jsx';
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
 if (sentryDsn) {
@@ -25,33 +26,39 @@ if (sentryDsn) {
 }
 
 const init = async (socket) => {
-  await initI18n();
+  const i18n = createI18n();
+  await initI18n(i18n);
+  const queryClient = new QueryClient();
+  const authStore = createAuthStore();
+  const chatStore = createChatStore();
 
   return (
     <I18nextProvider i18n={i18n}>
       <Sentry.ErrorBoundary fallback={ErrorFallback}>
-        <MantineProvider>
-        <Notifications position="top-right" />
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <Header />
-            <Routes>
-          <Route
-            path="/"
-            element={(
-              <ProtectedRoute>
-                <HomePage socket={socket} />
-              </ProtectedRoute>
-            )}
-          />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/404" element={<NotFoundPage />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </QueryClientProvider>
-        </MantineProvider>
+        <StoreProvider authStore={authStore} chatStore={chatStore}>
+          <MantineProvider>
+            <Notifications position="top-right" />
+            <QueryClientProvider client={queryClient}>
+              <BrowserRouter>
+                <Header />
+                <Routes>
+                  <Route
+                    path="/"
+                    element={(
+                      <ProtectedRoute>
+                        <HomePage socket={socket} />
+                      </ProtectedRoute>
+                    )}
+                  />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupPage />} />
+                  <Route path="/404" element={<NotFoundPage />} />
+                  <Route path="*" element={<Navigate to="/404" replace />} />
+                </Routes>
+              </BrowserRouter>
+            </QueryClientProvider>
+          </MantineProvider>
+        </StoreProvider>
       </Sentry.ErrorBoundary>
     </I18nextProvider>
   );

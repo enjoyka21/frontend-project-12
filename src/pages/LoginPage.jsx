@@ -14,7 +14,7 @@ import { useForm } from '@mantine/form';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import useAuthStore from '../store/authStore.js';
+import { useAuthStore } from '../store/useStores.js';
 
 const LoginPage = () => {
   const { t } = useTranslation();
@@ -69,7 +69,7 @@ const LoginPage = () => {
           <Stack>
             {error && <Alert color="red">{error}</Alert>}
             <TextInput
-              label={t('auth.username')}
+              label={t('auth.loginUsername')}
               autoComplete="username"
               {...form.getInputProps('username')}
             />

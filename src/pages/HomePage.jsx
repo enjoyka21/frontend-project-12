@@ -31,8 +31,7 @@ import {
   removeChannel,
   renameChannel,
 } from '../api/chatApi.js';
-import useAuthStore from '../store/authStore.js';
-import useChatStore from '../store/chatStore.js';
+import { useAuthStore, useChatStore } from '../store/useStores.js';
 import cleanText from '../utils/profanity.js';
 
 const HomePage = ({ socket }) => {

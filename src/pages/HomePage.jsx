@@ -167,7 +167,6 @@ const HomePage = ({ socket }) => {
       channelForm.reset();
       setChannelModal(null);
       notifications.show({
-  id: 'channel-success',
   color: 'green',
   message: variables.mode === 'rename'
     ? t('notifications.channelRenamed')

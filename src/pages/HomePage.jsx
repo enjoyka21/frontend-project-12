@@ -225,28 +225,28 @@ const HomePage = ({ socket }) => {
         <Group justify="space-between" mb="md">
           <Title order={2}>{t('chat.channels')}</Title>
           <Group gap="xs">
-            <Button
-              variant="light"
-              size="xs"
-              aria-label={t('chat.addChannel')}
-              onClick={() => {
-              channelForm.reset();
-              setChannelModal({ mode: 'create' });
-              }}
-            >
-              +
-            </Button>
+           <Button
+  variant="light"
+  size="xs"
+  onClick={() => {
+    channelForm.reset();
+    setChannelModal({ mode: 'create' });
+  }}
+>
+  +
+</Button>
             <Button variant="subtle" size="xs" onClick={logout}>{t('common.logout')}</Button>
           </Group>
         </Group>
         <Stack gap="xs">
           {channels.map((channel) => (
             <Group key={channel.id} gap={4} wrap="nowrap">
-              <Button
-                flex={1}
-                variant={currentChannel?.id === channel.id ? 'light' : 'subtle'}
-                justify="space-between"
-                onClick={() => setCurrentChannelId(channel.id)}
+             <Button
+  flex={1}
+  aria-label={`# ${cleanText(channel.name)}`}
+  variant={currentChannel?.id === channel.id ? 'light' : 'subtle'}
+  justify="space-between"
+  onClick={() => setCurrentChannelId(channel.id)}
                 styles={{ label: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
               >
                 <span># {cleanText(channel.name)}</span>

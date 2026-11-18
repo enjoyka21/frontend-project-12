@@ -167,11 +167,12 @@ const HomePage = ({ socket }) => {
       channelForm.reset();
       setChannelModal(null);
       notifications.show({
-        color: 'green',
-        message: variables.mode === 'rename'
-          ? t('notifications.channelRenamed')
-          : t('notifications.channelCreated'),
-      });
+  id: 'channel-success',
+  color: 'green',
+  message: variables.mode === 'rename'
+    ? t('notifications.channelRenamed')
+    : t('notifications.channelCreated'),
+});
     },
     onError: () => {
       notifications.show({
@@ -243,13 +244,14 @@ const HomePage = ({ socket }) => {
             <Group key={channel.id} gap={4} wrap="nowrap">
              
 <Button
+  aria-label={`# ${cleanText(channel.name)}`}
   flex={1}
   variant={currentChannel?.id === channel.id ? 'light' : 'subtle'}
   justify="flex-start"
   onClick={() => setCurrentChannelId(channel.id)}
   styles={{ label: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
 >
-  # {cleanText(channel.name)}
+  {cleanText(channel.name)}
 </Button>
 {channel.removable && (
   <Badge size="xs">{t('chat.channelBadge')}</Badge>

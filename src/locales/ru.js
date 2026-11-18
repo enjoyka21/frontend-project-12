@@ -22,7 +22,7 @@ const ru = {
       loginLink: 'Войти',
       invalidCredentials: 'Неверные имя пользователя или пароль',
       signupFailed: 'Не удалось зарегистрироваться',
-      userExists: 'Пользователь с таким именем уже существует',
+     userExists: 'Такой пользователь уже существует',
       usernameRequired: 'Введите имя пользователя',
       usernameLength: 'От 3 до 20 символов',
       passwordRequired: 'Введите пароль',

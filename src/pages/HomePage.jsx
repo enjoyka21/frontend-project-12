@@ -241,17 +241,20 @@ const HomePage = ({ socket }) => {
         <Stack gap="xs">
           {channels.map((channel) => (
             <Group key={channel.id} gap={4} wrap="nowrap">
-             <Button
+             
+<Button
   flex={1}
-  aria-label={`# ${cleanText(channel.name)}`}
   variant={currentChannel?.id === channel.id ? 'light' : 'subtle'}
-  justify="space-between"
+  justify="flex-start"
   onClick={() => setCurrentChannelId(channel.id)}
-                styles={{ label: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
-              >
-                <span># {cleanText(channel.name)}</span>
-                {channel.removable && <Badge size="xs">{t('chat.channelBadge')}</Badge>}
-              </Button>
+  styles={{ label: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
+>
+  # {cleanText(channel.name)}
+</Button>
+{channel.removable && (
+  <Badge size="xs">{t('chat.channelBadge')}</Badge>
+)}
+
               {channel.removable && (
                 <Menu withinPortal>
                   <Menu.Target>
